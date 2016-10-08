@@ -1,0 +1,27 @@
+{
+  "name": "sass-typical",
+  "description": "Adaptive type setting – let your fonts' personality shine!",
+  "main": "stylesheets/_typical.scss",
+  "authors": [
+    "Yoannis Jamar <yoannis.j@gmail.com>"
+  ],
+  "license": "ISC",
+  "keywords": [
+    "sass",
+    "typography",
+    "typesetting",
+    "fonts",
+    "adaptive",
+    "modular",
+    "responsive",
+    "css"
+  ],
+  "homepage": "https://github.com/yoannisj/sass-typical",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
