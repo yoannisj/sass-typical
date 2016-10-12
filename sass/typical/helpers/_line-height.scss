@@ -1,0 +1,53 @@
+// =============================================================================
+// =Typical -  Line-height Helpers
+// =============================================================================
+
+@import "typical/defaults";
+
+// calc-line-height($fs, $min-gap: 0)
+// -----------------------------------------------------------------------------
+/// Calculates the minimum line-height for a given font-size and minimum
+/// line-gap. Calculation is based on 'base-line-height'.
+///
+/// @param $fs - the $font-size with wich line-heigth will be used
+/// @param $min-gap [0] - the minimum space between each line of text
+///
+/// @return line-height, in same unit as '$base-line-height'
+
+@function calc-line-height($fs, $min-gap: 0)
+{
+  $base-fs: $base-font-size;
+  $base-lh: $base-line-height;
+  $base-fs-unit: unit($base-font-size);
+  $base-lh-unit: unit($base-line-height);
+  $min-gap-unit: unit($min-gap);
+
+  // get base-line-height in same unit as base-font-size
+  @if not $base-lh-unit {
+    $base-lh: $base-fs * $base-lh;
+  }
+
+  @else if $base-lh-unit != $base-fs-unit {
+    $base-lh: convert-length($base-lh, $base-fs-unit, $base-fs);
+  }
+
+  // get min line gap in same unit as base-font-size
+  @if $min-gap-unit != $base-fs-unit {
+    $min-gap: convert-length($min-gap, $base-fs-unit, $base-fs);
+  }
+
+  // get minimum line-height
+  $min-lh: $base-fs + $min-gap;
+
+  // get smallest valid line-height
+  $lh: if($base-lh >= $min-lh, $base-lh, $min-lh);
+
+  // transform back into 'base-line-height' unit
+  @if not $base-lh-unit {
+    // unitless line-height
+    @return $lh / $base-fs;
+  }
+
+  // other unit used by developer
+  @return convert-length($lh, $base-lh-unit, $base-fs);
+}

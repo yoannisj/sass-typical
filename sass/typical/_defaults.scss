@@ -1,0 +1,66 @@
+// =============================================================================
+// =Typical Settings
+// =============================================================================
+
+@import "aleksi/general/default-to";
+
+// $fonts
+// -----------------------------------------------------------------------------
+/// Table of fonts used in the document, and settings for specific adjustments.
+
+$fonts: (
+
+  'sans': (
+    'font-family': 'Helvetica Neue', Helvetica, Arial, sans-serif,
+    'base-font-size': 16px,
+    'base-line-height': 1.5,
+    'min-line-gap': 2px,
+  ),
+
+  'serif': (
+    'font-family': Georgia, serif,
+    'base-font-size': 16px,
+    'base-line-height': 1.5,
+    'min-line-gap': 2px,
+  )
+
+) !default;
+
+// $typical-base-font
+// -----------------------------------------------------------------------------
+/// The name of the font to use as base. Usually, the font used for body text.
+/// @default First key in the '$fonts' map
+
+$typical-base-font: nth(map-keys($fonts), 1) !default;
+
+// $typescale
+// -----------------------------------------------------------------------------
+/// Table of font-sizes and line-heigths used in the document. In order to be
+/// consumed more easily by Typical's API, this table is first re-arranged in
+/// a per-font format in "typical/setup".
+
+$typescale: (
+
+  // heading sizes
+  'alpha'   : 2 * $base-font-size,
+  'beta'    : 1.5 * $base-font-size,
+  'gamma'   : 1.17 * $base-font-size,
+  'delta'   : 1 * $base-font-size,
+  'epsilon' : 0.83 * $base-font-size,
+  'zeta'    : 0.67 * $base-font-size,
+
+  // base size
+  'base'    : $base-font-size $base-line-height,
+
+  // smalltext sizes
+  'micro'   : 0.8 * $base-font-size,
+  'nano'    : 0.75 * $base-font-size
+
+) !default;
+
+// $typical-base-size
+// -----------------------------------------------------------------------------
+/// The name of the type-size to use as base
+/// @default 'base'
+
+$typical-base-size: 'base' !default; // typescale size to use as base

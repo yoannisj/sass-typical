@@ -1,0 +1,68 @@
+// =============================================================================
+// =Typical - Setup Typescale Table
+// =============================================================================
+
+@import "sassy-maps";
+@import "aleksi/general/default-to";
+@import "typical/defaults";
+
+// typical-fonts([ $table ])
+// -----------------------------------------------------------------------------
+/// Analyzes $fonts global, and calculates missing settings for each font
+
+@function typical-fonts($table: $fonts)
+{
+  $res: ();
+
+  @each $font in map-keys($table)
+  {
+    $settings: typical-font-settings($font);
+    $res: map-set($res, $font, $settings);
+  }
+
+  @return $res;
+}
+
+// typical-font-settings( $font )
+// -----------------------------------------------------------------------------
+/// Analyzes $fonts global, and calculates missing values for each font
+
+@function typical-font-settings($font)
+{
+  // get font settings and inject general defaults
+  $settings: map-merge((
+    'min-line-gap': 0
+  ), map-get($fonts, $font));
+
+  $base-fs: if(variable-exists('base-font-size'), $base-font-size, 16px);
+  $base-lh: if(variable-exists('base-line-height'), $base-line-height, 1.5);
+
+  // Add computed defaults for special settings
+  @if not map-has-key($settings, 'base-font-size') {
+    $fs-adjust: default-to(map-get($settings, 'font-size-adjust'), 1);
+    $settings: map-set($settings, 'base-font-size', $base-fs * $fs-adjust);
+  }
+
+  @if not map-has-key($settings, 'base-line-height') {
+    $lh-adjust: default-to(map-get($settings, 'base-line-height-adjust'), 1);
+    $settings: map-set($settings, 'base-line-height', $base-lh * $lh-adjust);
+  }
+
+  @if not map-has-key($settings, 'font-size-adjust') {
+    $fs-adjust: map-get($settings, 'base-font-size') / $base-fs;
+    $settings: map-set($settings, 'font-size-adjust', $fs-adjust);
+  }
+
+  @if not map-has-key($settings, 'line-height-adjust') {
+    $lh-adjust: map-get($settings, 'base-line-height') / $base-lh;
+    $settings: map-set($settings, 'line-height-adjust', $lh-adjust);
+  }
+
+  @return $settings;
+}
+
+// Fonts
+// -----------------------------------------------------------------------------
+// Setup/expand global fonts table used internally
+
+$_typical-fonts: typical-fonts();

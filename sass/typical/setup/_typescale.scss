@@ -1,0 +1,175 @@
+// =============================================================================
+// =Typical - Setup Typescale Table
+// =============================================================================
+
+@import 'aleksi/lengths/convert';
+@import "aleksi/maps/map-depth";
+@import "sassy-maps";
+@import "SassyLists";
+
+@import "typical/defaults";
+@import "typical/setup/fonts";
+@import "typical/setup/base";
+@import "typical/helpers/line-height";
+
+// typical-typescale([ $scale ])
+// -----------------------------------------------------------------------------
+/// Analyzes given typescale table, and calculates missing values for each font
+/// and typescale size.
+
+@function typical-typescale($scale: $typescale)
+{
+  $res: ();
+
+  // Get + Register base typescale (defaults)
+  $base: typical-base-scale($scale);
+  $res: map-set($res, '*', $base);
+
+  // Adjust + Register each font's own typescale
+  @each $font in map-keys($_typical-fonts)
+  {
+    $font-scale: typical-fontscale($scale, $base, $font);
+    $res: map-set($res, $font, $font-scale);
+  }
+
+  @return $res;
+}
+
+// typical-base-scale([ $scale ])
+// -----------------------------------------------------------------------------
+/// Analyzes given typescale table, and returns the base values. Adds possibly
+/// missing 'base' typescale size in correct format.
+
+@function typical-base-scale($scale)
+{
+  // get base typescale
+  $base: if(map-has-key($scale, '*'), map-get($scale, '*'), $scale);
+
+  // make sure the 'base' size is included
+  $base-size: map-get($base, $typical-base-size);
+  $base-size-defaults: $base-font-size $base-line-height;
+
+  // per-breakpoint typescale values
+  @if map-depth($base) > 1
+  {
+    $base-size-defaults: (
+      #{unquote('null')}: $base-size-defaults
+    );
+
+    @if not $base-size {
+      $base-size: $base-size-defaults; 
+    }
+
+    @else if type-of($base-size) == 'map'
+      and not map-has-key($base-size, null)
+    {
+      $base-size: map-merge($base-size-defaults, $base-size);
+    }
+
+    // complete and return base typescale
+    @return map-set($base, $typical-base-size, $base-size);
+  }
+
+  // absolute typescale values
+  $base-size-values: $base-font-size $base-line-height;
+
+  // complete and return base typescale
+  @return map-set($base, $typical-base-size, $base-size-values);
+}
+
+// typical-fontscale($scale, $base, $font)
+// -----------------------------------------------------------------------------
+/// Returns typescale values for a font, calculating values that were not
+/// explicitly set by developer.
+
+@function typical-fontscale($scale, $base, $font)
+{
+  $font-scale: ();
+
+  // get font settings
+  $font-settings: map-get($_typical-fonts, $font);
+  $overrides: map-get($scale, $font);
+
+  // calculate missing sizes and values
+  @each $size, $values in $base
+  {
+    $size-overrides: $overrides;
+    @if type-of($overrides) == 'map' {
+      $size-overrides: map-get($overrides, $size);
+    }
+
+    $font-values: typical-fontscale-size($size, $values, $size-overrides, $font-settings);
+    $font-scale: map-set($font-scale, $size, $font-values);
+  }
+
+  @return $font-scale;
+}
+
+// typical-fontscale-size($size, $values, $overrides[, $settings])
+// -----------------------------------------------------------------------------
+/// Returns typescale values for a font and given size in the typescale,
+/// calculating values that were not explicitly set by developer.
+
+@function typical-fontscale-size($size, $values, $overrides, $settings)
+{
+  // set per-breakpoint values
+  @if type-of($values) == 'map'
+  {
+    $font-values: ();
+    $overrides-type: type-of($overrides);
+    $breakpoints: map-keys($values);
+
+    // get breakpoints from both values and overrides
+    @if $overrides-type == 'map' {
+      $breakpoints: sl-union($breakpoints, map-keys($overrides));
+    }
+
+    @each $bp in $breakpoints
+    {
+      $bp-values: map-get($values, $bp);
+      $bp-overrides: $overrides;
+
+      // get overrides for breakpoint
+      @if $overrides-type == 'map' {
+        $bp-overrides: map-get($overrides, $bp);
+      }
+
+      $bp-values: typical-fontscale-size($size, $bp-values, $bp-overrides, $settings);
+      $font-values: map-set($font-values, $bp, $bp-values);
+    }
+
+    @return $font-values;
+  }
+
+  // calculate missing values based on font-settings
+  $font-fs-adjust: map-get($settings, 'font-size-adjust');
+  $font-lh-adjust: map-get($settings, 'line-height-adjust');
+  $font-min-line-gap: map-get($settings, 'min-line-gap');
+
+  $fs: null;
+  $lh: null;
+
+  // use developer overrides if given
+  @if $overrides {
+    $fs: nth($overrides, 1);
+    $lh: if(length($overrides) > 1, nth($overrides, 2), null);
+  }
+
+  // default to calculated font-size
+  $fs: if($fs, $fs, nth($values, 1) * $font-fs-adjust);
+
+  // default to calculated line-height
+  @if not $lh {
+    $lh: if(length($values) > 1, nth($values, 2) * $font-lh-adjust, null);
+    $lh: if($lh, $lh, calc-line-height($fs, $font-min-line-gap));
+  }
+
+  // adjust font-size and line-height
+  @return $fs $lh;
+}
+
+// Typescale
+// -----------------------------------------------------------------------------
+// Setup/expand global typescale used internally
+
+$_typical-typescale: typical-typescale();
