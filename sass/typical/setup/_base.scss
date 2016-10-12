@@ -1,0 +1,48 @@
+// =============================================================================
+// =Typical - Setup Base Variables
+// =============================================================================
+
+@import "typical/defaults";
+@import "typical/setup/fonts";
+
+// $base-font-family
+// -----------------------------------------------------------------------------
+/// The CSS font-family to use for the base font.
+/// @default The base font's, 'font-family' setting
+
+$base-font-family: null !default;
+
+@if $base-font-family == null
+{
+  // read font-family from base font's settings
+  $base-font-settings: map-get($fonts, $typical-base-font);
+  $base-font-family: map-get($base-font-settings, 'font-family') !global;
+}
+
+// $base-font-size/$base-line-height
+// -----------------------------------------------------------------------------
+/// The font-size and line-height to use by default. Usually your base font's
+/// ideal settings for body text.
+/// @default The base font's 'base-font-size'/'base-line-height' settings.
+/// @default 16px/1.5
+
+$base-font-size: null !default;
+$base-line-height: null !default;
+
+@if $base-font-size == null
+  or $base-line-height == null
+{
+  $base-font-settings: map-get($fonts, $typical-base-font);
+
+  @if $base-font-size == null
+  {
+    $base-font-fs: map-get($base-font-settings, 'base-font-size');
+    $base-font-size: default-to($base-font-fs, 16px) !global;
+  }
+
+  @if $base-line-height == null
+  {
+    $base-font-lh: map-get($base-font-settings, 'base-line-height');
+    $base-line-height: default-to($base-font-lh, 1.5) !global;
+  }
+}
