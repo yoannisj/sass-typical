@@ -5,6 +5,9 @@
 @import "aleksi/lengths/convert";
 @import "typical/setup/base";
 
+// convert-line-height($lh, $unit[, $from, $to ])
+// -----------------------------------------------------------------------------
+
 @function convert-line-height($lh, $unit, $from: $base-font-size, $to: $from)
 {
   $lh-unit: unit($lh);

@@ -1,0 +1,28 @@
+// =============================================================================
+// =Typical - Font-family Helpers
+// =============================================================================
+
+@import "SassyLists";
+@import "typical/setup/fonts";
+
+// typical-font-stack($faces)
+// -----------------------------------------------------------------------------
+
+@function typical-font-stack($font)
+{
+  $settings: map-get($_typical-fonts, $font);
+  $stack: map-get($settings, 'family');
+  $fallback: map-get($settings, 'fallback');
+
+  @while $fallback != null
+  {
+    $fallback-settings: map-get($_typical-fonts, $fallback);
+    $fallback-family: map-get($fallback-settings, 'family');
+    $stack: append($stack, $fallback-family, 'comma');
+
+    // repeat for fallback's own fallback
+    $fallback: map-get($fallback-settings, 'fallback');
+  }
+
+  @return sl-flatten($stack);
+}
