@@ -7,40 +7,40 @@
 @import "sassy-maps";
 @import "SassyLists";
 
-@import "typical/defaults";
+@import "typical/helpers/line-height";
 @import "typical/setup/fonts";
 @import "typical/setup/base";
-@import "typical/helpers/line-height";
+@import "typical/defaults";
 
-// typical-typescale([ $scale ])
+// typical-setup-typescale([ $scale ])
 // -----------------------------------------------------------------------------
 /// Analyzes given typescale table, and calculates missing values for each font
 /// and typescale size.
 
-@function typical-typescale($scale: $typescale)
+@function typical-setup-typescale($scale: $typescale)
 {
   $res: ();
 
   // Get + Register base typescale (defaults)
-  $base: typical-base-scale($scale);
-  $res: map-set($res, '*', $base);
+  $base: typical-setup-base-scale($scale);
+  $res: map-set($res, $typical-base-font, $base);
 
   // Adjust + Register each font's own typescale
   @each $font in map-keys($_typical-fonts)
   {
-    $font-scale: typical-fontscale($scale, $base, $font);
+    $font-scale: typical-setup-fontscale($scale, $base, $font);
     $res: map-set($res, $font, $font-scale);
   }
 
   @return $res;
 }
 
-// typical-base-scale([ $scale ])
+// typical-setup-base-scale([ $scale ])
 // -----------------------------------------------------------------------------
 /// Analyzes given typescale table, and returns the base values. Adds possibly
 /// missing 'base' typescale size in correct format.
 
-@function typical-base-scale($scale)
+@function typical-setup-base-scale($scale)
 {
   // get base typescale
   $base: if(map-has-key($scale, '*'), map-get($scale, '*'), $scale);
@@ -53,7 +53,7 @@
   @if map-depth($base) > 1
   {
     $base-size-defaults: (
-      #{unquote('null')}: $base-size-defaults
+     'base': $base-size-defaults
     );
 
     @if not $base-size {
@@ -61,7 +61,7 @@
     }
 
     @else if type-of($base-size) == 'map'
-      and not map-has-key($base-size, null)
+      and not map-has-key($base-size, 'base')
     {
       $base-size: map-merge($base-size-defaults, $base-size);
     }
@@ -77,12 +77,12 @@
   @return map-set($base, $typical-base-size, $base-size-values);
 }
 
-// typical-fontscale($scale, $base, $font)
+// typical-setup-fontscale($scale, $base, $font)
 // -----------------------------------------------------------------------------
 /// Returns typescale values for a font, calculating values that were not
 /// explicitly set by developer.
 
-@function typical-fontscale($scale, $base, $font)
+@function typical-setup-fontscale($scale, $base, $font)
 {
   $font-scale: ();
 
@@ -98,19 +98,19 @@
       $size-overrides: map-get($overrides, $size);
     }
 
-    $font-values: typical-fontscale-size($size, $values, $size-overrides, $font-settings);
+    $font-values: typical-setup-fontscale-size($size, $values, $size-overrides, $font-settings);
     $font-scale: map-set($font-scale, $size, $font-values);
   }
 
   @return $font-scale;
 }
 
-// typical-fontscale-size($size, $values, $overrides[, $settings])
+// typical-setup-fontscale-size($size, $values, $overrides[, $settings])
 // -----------------------------------------------------------------------------
 /// Returns typescale values for a font and given size in the typescale,
 /// calculating values that were not explicitly set by developer.
 
-@function typical-fontscale-size($size, $values, $overrides, $settings)
+@function typical-setup-fontscale-size($size, $values, $overrides, $settings)
 {
   // set per-breakpoint values
   @if type-of($values) == 'map'
@@ -134,7 +134,7 @@
         $bp-overrides: map-get($overrides, $bp);
       }
 
-      $bp-values: typical-fontscale-size($size, $bp-values, $bp-overrides, $settings);
+      $bp-values: typical-setup-fontscale-size($size, $bp-values, $bp-overrides, $settings);
       $font-values: map-set($font-values, $bp, $bp-values);
     }
 
@@ -172,4 +172,4 @@
 // -----------------------------------------------------------------------------
 // Setup/expand global typescale used internally
 
-$_typical-typescale: typical-typescale();
+$_typical-typescale: typical-setup-typescale();

@@ -4,21 +4,41 @@
 
 @import "aleksi/general/default-to";
 
+// $typical-ie-support
+// -----------------------------------------------------------------------------
+/// Minimum version of Internet Explorer that should be supported by output CSS.
+
+$typical-ie-support: if(variable-exists('support-for'), map-get($support-for, 'ie'), 8) !default;
+
 // $fonts
 // -----------------------------------------------------------------------------
 /// Table of fonts used in the document, and settings for specific adjustments.
 
 $fonts: (
 
-  'sans': (
-    'font-family': 'Helvetica Neue', Helvetica, Arial, sans-serif,
+  'avenir-next': (
+
+    'font-family': 'avenir-next',
+    'faces': 'normal:400' 'italic:400,600,800',
+    'path': './fonts/<name>-<s><w>',
+    'fallback': 'sans',
+
     'base-font-size': 16px,
     'base-line-height': 1.5,
-    'min-line-gap': 2px,
+    'min-line-gap': 2px
+  ),
+
+  'sans': (
+    'family': 'Helvetica Neue',
+    'fallback': (Helvetica, Arial, sans-serif),
+
+    'base-font-size': 16px,
+    'base-line-height': 1.5,
+    'min-line-gap': 2px
   ),
 
   'serif': (
-    'font-family': Georgia, serif,
+    'font-family': (Georgia, serif),
     'base-font-size': 16px,
     'base-line-height': 1.5,
     'min-line-gap': 2px,

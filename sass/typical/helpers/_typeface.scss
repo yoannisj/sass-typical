@@ -1,0 +1,89 @@
+// =============================================================================
+// =Typical - Line-height Helpers
+// =============================================================================
+
+@import "aleksi/strings/str-explode";
+@import "aleksi/strings/str-replace";
+@import "aleksi/cast/to-number";
+
+// typical-typeface-expand($faces)
+// -----------------------------------------------------------------------------
+
+@function typical-typeface-expand($faces)
+{
+  $res: ();
+
+  @each $face in $faces
+  {
+    $params: str-explode($face, ':');
+    $style: nth($params, 1);
+    $weights: str-explode(nth($params, 2), ',');
+
+    @each $weight in $weights {
+      $res: append($res, '#{$style}:#{$weight}');
+    }
+  }
+  
+  @return $res;
+}
+
+// typical-typeface-parse($face)
+// -----------------------------------------------------------------------------
+
+@function typical-typeface-parse($face)
+{
+  $res: (
+    'style': normal,
+    'weight': 400,
+    'stretch': null,
+    'variant': null
+  );
+
+  // allow passing a map of face settings
+  @if type-of($face) == 'map' {
+    // - in which case defaults are injected
+    @return map-merge($res, $face);
+  }
+
+  // analyze string describing the typeface
+  $params: str-explode($face, ':');
+  $style: nth($params, 1);
+  $weight: to-number(nth($params, 2));
+
+  @return map-merge($res, (
+    'style': $style,
+    'weight': $weight
+  ));
+}
+
+// typical-typeface-path($pattern, $font, $face)
+// -----------------------------------------------------------------------------
+
+@function typical-typeface-path($pattern, $font, $face)
+{
+  // allow passing a string representing the typeface
+  @if type-of($face) == 'string' {
+    $face: typical-typeface-parse($face);
+  }
+
+  // get individual typeface params
+  $style: map-get($face, 'style');
+  $weight: map-get($face, 'weight');
+
+  // get weight and style abbreviations
+  $s: to-lower-case(str-slice($style, 0, 1));
+  $w: to-lower-case('#{$weight / 100}');
+
+  // include font name in path
+  $path: str-replace($pattern, '<name>', $font);
+
+  // include style in path
+  $path: str-replace($path, '<style>', $style);
+  $path: str-replace($path, '<s>', $s);
+
+  // include weight in path
+  $path: str-replace($path, '<weight>', '#{$weight}');
+  $path: str-replace($path, '<w>', $w);
+
+  @return $path;
+}

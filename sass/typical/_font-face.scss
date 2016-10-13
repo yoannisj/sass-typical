@@ -1,0 +1,67 @@
+// =============================================================================
+// =Typical - Font-face
+// =============================================================================
+
+@import "sassy-maps";
+@import "aleksi/general/default-to";
+@import "typical/setup/fonts";
+@import "typical/helpers/typeface";
+
+// typical-font-faces()
+// -----------------------------------------------------------------------------
+
+@mixin typical-font-faces($font: null)
+{
+  // if no particalur font was given
+  @if $font == null
+  {
+    // include for all fonts with typefaces
+    @each $font, $settings in $_typical-fonts
+    {
+      @if map-has-key($settings, 'faces')
+      {
+        @include typical-font-faces($font);
+      }
+    }
+  }
+
+  @else {
+    $settings: map-get($_typical-fonts, $font);
+    $faces: map-get($settings, 'faces');
+
+    // warn if given font does not define any typefaces
+    @if not $faces {
+      @warn "typical-font-faces(): no font faces found for #{$font}.";
+    }
+
+    @else {
+      @each $face in $faces {
+        @include typical-font-face($font, $face, $settings);
+      }
+    }
+  }
+
+}
+
+// typical-font-face($font, $face[, $settings ])
+// -----------------------------------------------------------------------------
+
+@mixin typical-font-face($font, $face, $settings: null)
+{
+  // get all typeface parameters
+  $face: typical-typeface-parse($face);
+  // get path from settings
+  $path: map-get-deep($_typical-fonts, $font, 'path');
+  $path: typical-typeface-path($path, $font, $face);
+
+  @font-face {
+    family-name: $font;
+    src: url('#{$path}.eot'); /* IE9 Compat Modes */
+    src: url('#{$path}.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
+      url('#{$path}.woff2') format('woff2'), /* ultra-modern browsers */
+      url('#{$path}.woff') format('woff'), /* modern browsers */
+      url('#{$path}.ttf') format('truetype'); /* Safari, Android, iOS */
+    font-style: map-get($face, 'style');
+    font-weight: map-get($face, 'weight');
+  }
+}

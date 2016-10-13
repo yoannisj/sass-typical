@@ -5,32 +5,34 @@
 @import "sassy-maps";
 @import "aleksi/general/default-to";
 @import "typical/defaults";
+@import "typical/helpers/typeface";
 
-// typical-fonts([ $table ])
+// typical-setup-fonts([ $table ])
 // -----------------------------------------------------------------------------
 /// Analyzes $fonts global, and calculates missing settings for each font
 
-@function typical-fonts($table: $fonts)
+@function typical-setup-fonts($table: $fonts)
 {
   $res: ();
 
   @each $font in map-keys($table)
   {
-    $settings: typical-font-settings($font);
+    $settings: typical-setup-font-settings($font);
     $res: map-set($res, $font, $settings);
   }
 
   @return $res;
 }
 
-// typical-font-settings( $font )
+// typical-setup-font-settings( $font )
 // -----------------------------------------------------------------------------
 /// Analyzes $fonts global, and calculates missing values for each font
 
-@function typical-font-settings($font)
+@function typical-setup-font-settings($font)
 {
   // get font settings and inject general defaults
   $settings: map-merge((
+    'path': './fonts/<name>-<s><w>',
     'min-line-gap': 0
   ), map-get($fonts, $font));
 
@@ -58,6 +60,12 @@
     $settings: map-set($settings, 'line-height-adjust', $lh-adjust);
   }
 
+  // Process expandable settings
+  @if map-has-key($settings, 'faces') {
+    $font-faces: typical-typeface-expand(map-get($settings, 'faces'));
+    $settings: map-set($settings, 'faces', $font-faces);
+  }
+
   @return $settings;
 }
 
@@ -65,4 +73,4 @@
 // -----------------------------------------------------------------------------
 // Setup/expand global fonts table used internally
 
-$_typical-fonts: typical-fonts();
+$_typical-fonts: typical-setup-fonts();
