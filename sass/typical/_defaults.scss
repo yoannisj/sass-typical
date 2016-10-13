@@ -84,3 +84,8 @@ $typescale: (
 /// @default 'base'
 
 $typical-base-size: 'base' !default; // typescale size to use as base
+
+// $typical-breakpoint-query-builder
+// -----------------------------------------------------------------------------
+
+$typical-breakpoint-query-builder: null !default;

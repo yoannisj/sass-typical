@@ -1,0 +1,23 @@
+// =============================================================================
+// =Typical - Line-height
+// =============================================================================
+
+@import "sassy-maps";
+@import "typical/typesize";
+
+// typical-line-height($size[, $font, $bp ])
+// -----------------------------------------------------------------------------
+
+@function typical-line-height($size, $font: $typical-base-font, $bp: 'base')
+{
+  $size: typical-type-size($size, $font, $bp);
+  @return nth($size, 2);
+}
+
+// typical-line-height($size[, $font, $bp ])
+// -----------------------------------------------------------------------------
+
+@mixin typical-line-height($size, $font: $typical-base-font, $bp: 'base')
+{
+  line-height: typical-line-height($size, $font, $bp);
+}

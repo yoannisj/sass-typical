@@ -1,8 +1,26 @@
 // =============================================================================
-// =Typical -  Line-height Helpers
+// =Typical - Line-height Helpers
 // =============================================================================
 
-@import "typical/defaults";
+@import "aleksi/lengths/convert";
+@import "typical/setup/base";
+
+@function convert-line-height($lh, $unit, $from: $base-font-size, $to: $from)
+{
+  $lh-unit: unit($lh);
+
+  // if converting to unitless
+  @if $unit == null or $unit == "" {
+    @return if($lh-unit == "", $lh, convert-length($lh, unit($from), $from, $to));
+  }
+
+  // converting from unitless
+  @if $lh-unit == "" {
+    @return convert-length($lh * $from, $unit, $from, $to);
+  }
+
+  @return convert-length($lh, $unit, $from, $to);
+}
 
 // calc-line-height($fs, $min-gap: 0)
 // -----------------------------------------------------------------------------
@@ -28,7 +46,7 @@
   }
 
   @else if $base-lh-unit != $base-fs-unit {
-    $base-lh: convert-length($base-lh, $base-fs-unit, $base-fs);
+    $base-lh: convert-line-height($base-lh, $base-fs-unit, $base-fs);
   }
 
   // get min line gap in same unit as base-font-size
@@ -37,7 +55,7 @@
   }
 
   // get minimum line-height
-  $min-lh: $base-fs + $min-gap;
+  $min-lh: $fs + $min-gap;
 
   // get smallest valid line-height
   $lh: if($base-lh >= $min-lh, $base-lh, $min-lh);
@@ -48,6 +66,6 @@
     @return $lh / $base-fs;
   }
 
-  // other unit used by developer
-  @return convert-length($lh, $base-lh-unit, $base-fs);
+  // return in unit used by developer
+  @return convert-line-height($lh, $base-lh-unit, $base-fs);
 }

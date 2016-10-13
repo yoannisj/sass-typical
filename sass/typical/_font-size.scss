@@ -1,0 +1,31 @@
+// =============================================================================
+// =Typical - Font-size
+// =============================================================================
+
+@import "sassy-maps";
+@import "aleksi/lengths/convert";
+@import "typical/typesize";
+
+// typical-font-size($size[, $font, $bp ])
+// -----------------------------------------------------------------------------
+
+@function typical-font-size($size, $font: $typical-base-font, $bp: null)
+{
+  $size: typical-type-size($size, $font, $bp);
+  @return nth($size, 1);
+}
+
+// typical-font-size($size[, $font, $bp ])
+// -----------------------------------------------------------------------------
+
+@mixin typical-font-size($size, $font: $typical-base-font, $bp: null)
+{
+  $fs: typical-font-size($size, $font, $bp);
+
+  // include IE 8 'rem' fallback
+  @if $typical-ie-support > 8 {
+    font-size: convert-length($fs, 'px');
+  }
+
+  font-size: $fs;
+}

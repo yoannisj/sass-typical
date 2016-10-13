@@ -2,32 +2,58 @@
 // =Typical - Typescale
 // =============================================================================
 
-@import "aleksi/maps/depth";
-@import "typical/defaults";
+@import "aleksi/maps/map-depth";
+@import "typical/setup/typescale";
+@import "typical/breakpoint";
+@import "typical/typesize";
 
-$_typical-typescale: () !default;
-
-// get-typescale-size($size[, $font ])
+// typical-typescale([ $font ])
 // -----------------------------------------------------------------------------
+/// @TODO: Accept a '$bp' arg, which returns all size values in that breakpoint.
 
-@function get-typescale-size($size, $font: null)
+@function typical-typescale($font: $typical-base-font)
 {
-  // 1. GET TYPESCALE TABLE TO USE
-  // default to global typescale
-  $_typescale: $_typical-typescale;
-
-  // get font's dedicated typescale if any
-  @if $font and map-depth($typescale) > 1
-    and map-has-key($typescale, $font)
-  {
-    $_typescale: map-merge($_typical-typescale, map-get($typescale, $font);
-  }
-
-  // 2. GET FONT-SIZE FROM TYPESCALE TABLE
-
-  $fs: map-get($typescale, $size);
-
+  @return map-get($_typical-typescale, $font);
 }
 
+// typical-typescale([ $font ])
+// -----------------------------------------------------------------------------
 
+@mixin typical-typescale($font: $typical-base-font, $bp: 'base')
+{
+  $scale: typical-typescale($font);
 
+  // if all breakpoints should be included,
+  // and scale defines per-breakpoint sizes
+  @if $bp == '*' and map-depth($scale) > 1
+  {
+    // include base scale (no media query)
+    @include typical-typescale($font, 'base');
+
+    // get all breakpoint names in the scale, but..
+    $scale-bps: typical-breakpoint-names($scale);
+    // loop through global breakpoints' list to conserve mobile-first order
+    @each $bp in $_typical-breakpoint-names
+    {
+      // include typescale in all relevant breakpoints
+      @if index($scale-bps, $bp)
+      {
+        @include typical-breakpoint($bp) {
+          @include typical-typescale($font, $bp);
+        }
+      }
+    }
+  }
+
+  @else {
+    @each $size, $values in $scale
+    {
+      @at-root
+      {
+        #{&}-#{$size} {
+          @include typical-typesize($size, $font, $bp);
+        }
+      }
+    }
+  }
+}

@@ -46,3 +46,9 @@ $base-line-height: null !default;
     $base-line-height: default-to($base-font-lh, 1.5) !global;
   }
 }
+
+// $root-font-size
+// -----------------------------------------------------------------------------
+/// Font-size applied to the 'html' element. Used to calculate 'rem' values.
+
+$root-font-size: $base-font-size !default;

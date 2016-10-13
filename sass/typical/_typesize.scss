@@ -1,0 +1,155 @@
+// =============================================================================
+// =Typical - Typesize
+// =============================================================================
+
+@import "sassy-maps";
+@import "aleksi/maps/map-depth";
+@import "aleksi/lengths/convert";
+
+@import "typical/helpers/line-height";
+@import "typical/setup/fonts";
+@import "typical/setup/base";
+@import "typical/setup/typescale";
+@import "typical/breakpoint";
+
+// typical-typesize-parse( $size )
+// -----------------------------------------------------------------------------
+/// Parses a string describing a typesize, and returns corrsponding
+/// 'font-size' and 'line-height' values.
+// e.g. 'georgia:base:l' or 'avenir:base' or 'base:m' etc.
+
+@function typical-typesize-parse($size)
+{
+  $params: str-explode($size, ':');
+  $num-params: length($params);
+
+  @if $num-params == 3 {
+    $bp: nth($params, 3);
+  }
+
+  @else if $num-params == 2 {
+    $font: nth($params, 1);
+    $size: nth($params, 2);
+  }
+
+  @else {
+    $size: nth($params, 1);
+  }
+
+  // get value for size
+  $size: map-get-deep($_typical-typescale, $font, $size);
+
+  @if type-of($size) == 'map' {
+    $size: map-get($size, $bp);
+  }
+
+  @return $size;
+}
+
+// typical-typesize-values($size[, $font, $bp, $adjust ])
+// -----------------------------------------------------------------------------
+/// Recieves typesize values on the fly, and returns the values adjusted to the
+/// given font and breakpoint.
+
+@function typical-typesize-values($size, $font: $typical-base-font, $bp: 'base', $adjust: true)
+{
+  @if type-of($size) == 'string' {
+    // get values, readily adjusted during setup
+    $size: map-get-deep($_typical-typescale, $font, $size);
+    $size: typical-typesize-values($size, $font, $bp, false);
+  }
+
+  // accept per-breakpoint size values
+  @if type-of($size) == 'map'
+  {
+    @if $bp == '*' {
+      // run on each breakpoint value
+      @return map-walk($size, 'typical-typesize-values', $font);
+    }
+
+    // continue with given breakpoint's value
+    $size: typical-breakpoint-value($size, $bp);
+  }
+
+  // get font settings
+  $settings: map-get($_typical-fonts, $font);
+  $min-line-gap: map-get($settings, 'min-line-gap');
+
+  $fs: nth($size, 1);
+  $lh: if(length($size) > 1, nth($size, 2), calc-line-height($fs, $min-line-gap));
+
+  @if $adjust
+  {
+    $fs-adjust: map-get($settings, 'font-size-adjust');
+    $lh-adjust: map-get($settings, 'line-height-adjust');
+    $size: ($fs * $fs-adjust) ($lh * $lh-adjust);
+  }
+
+  @return $size;
+}
+
+// typical-typesize($size[, $font, $bp ])
+// -----------------------------------------------------------------------------
+
+@function typical-typesize($size, $font: $typical-base-font, $bp: 'base')
+{
+  // get values, adjusted using the font's settings
+  $size: typical-typesize-values($size, $font, $bp);
+
+  @if $bp == '*'
+    and type-of($size) == 'map'
+  {
+    // run on each breakpoint
+    @return map-walk($size, 'typical-typesize', $font);
+  }
+
+  $fs: nth($size, 1);
+  $lh: null;
+
+  // calculate line-height if not given in size values
+  @if length($size) == 1 {
+    $min-line-gap: map-get-deep($_typical-fonts, $font, 'min-line-gap');
+    $lh: calc-line-height($fs, $min-line-gap);
+  } @else {
+    $lh: nth($size, 2);
+  }
+
+  // convert values to correct units
+  $fs: convert-length($fs, 'rem');
+  $lh: convert-line-height($lh, 'rem') / $fs;
+
+  @return $fs $lh;
+}
+
+// typical-typesize($size[, $context ])
+// -----------------------------------------------------------------------------
+
+@mixin typical-typesize($size, $font: $typical-base-font, $bp: 'base')
+{
+  $size: typical-typesize($size, $font, $bp);
+
+  // if all breakpoint values should be included
+  // and typesize defines per-breakpoint values
+  @if $bp == '*' and type-of($size) == 'map'
+  {
+    @each $bp in map-keys($size)
+    {
+      @include typical-breakpoint($bp) {
+        @include typical-typesize($size, $font, $bp);
+      }
+    }
+  }
+
+  @else {
+    $fs: nth($size, 1);
+    $lh: nth($size, 2);
+
+    // include IE 8 'rem' fallback
+    @if $typical-ie-support > 8 {
+      font-size: convert-length($fs, 'px');
+    }
+
+    font-size: $fs;
+    line-height: $lh;
+  }
+}

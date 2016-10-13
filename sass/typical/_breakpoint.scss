@@ -1,0 +1,186 @@
+// =============================================================================
+// =Typical - Breakpoint Helpers
+// =============================================================================
+
+@import "SassyLists";
+@import "aleksi/lengths/convert";
+@import "aleksi/maps/map-depth";
+@import "aleksi/maps/map-walk";
+@import "typical/setup/breakpoints";
+@import "typical/defaults";
+
+// typical-breakpoint-names($fs, $min-gap: 0)
+// -----------------------------------------------------------------------------
+/// Analyzes a given scale, and returns the list of breakpoint names that are
+/// used to define font sizing values in it. Returns null if the scale does not
+/// define any breakpoint-specific values.
+
+@function typical-breakpoint-names($scale)
+{
+  $scale-depth: map-depth($scale);
+  $res: ();
+
+  // if scale defines sizes per-font
+  @if $scale-depth > 2 {
+    $res: map-values(map-walk($scale, 'typical-breakpoint-names'));
+    @return sl-remove-duplicates(sl-flatten($res));
+  }
+
+  // if scale defines sizes per-breakpoint
+  @if $scale-depth > 1
+  {
+    @each $size, $values in $scale {
+      $res: sl-union($res, map-keys($values));
+    }
+  }
+
+  // will return empty list if scale does not define breakpoint values
+  @return $res;
+}
+
+// typical-breakpoint-before($breakpoint[, $options ])
+// -----------------------------------------------------------------------------
+
+@function typical-breakpoint-before($breakpoint, $options: $_typical-breakpoint-names)
+{
+  // accept special 'base' key
+  @if $breakpoint == 'base' {
+    // no breakpoint before base
+    @return 'base';
+  }
+
+  $index: index($_typical-breakpoint-names, $breakpoint);
+
+  // return first option that is defined before the breakpoint
+  // in the global breakpoints map
+  @for $i from length($options) through 1
+  {
+    $candidate: nth($options, $i);
+    $candidate-index: index($_typical-breakpoint-names, $candidate);
+
+    @if $candidate-index and $candidate-index < $index {
+      @return $candidate;
+    }
+  }
+
+  // or null, which corresponds to the base
+  @return 'base';
+}
+
+// typical-breakpoint-value($values, $breakpoint)
+// -----------------------------------------------------------------------------
+/// Takes a map of breakpoint values, and returns the value corresponding to
+/// the given breakpoint (mobile-first approach).
+
+@function typical-breakpoint-value($values, $breakpoint)
+{
+  // accept 'base' as breakpoint key
+  @if $breakpoint == 'base' {
+    @return map-get($values, 'base');
+  }
+
+  // get breakpoint value defined in values
+  $val: map-get($values, $breakpoint);
+
+  // if none was found
+  @if $val == null {
+    // get breakpoint value of breakpoint before
+    $breakpoint: typical-breakpoint-before($breakpoint, map-keys($values));
+    @return typical-breakpoint-value($values, $breakpoint);
+  }
+
+  @return $val;
+}
+
+// typical-build-breakpoint-query($breapoint)
+// -----------------------------------------------------------------------------
+/// Builds a media-query for the given breakpoint.
+
+@function typical-build-breakpoint-query($breakpoint)
+{
+  // the 'base' keyword targets the base-styles, outside of @media
+  @if $breakpoint == 'base' {
+    @return null;
+  }
+
+  // get breakpoint width
+  $width: map-get($_typical-breakpoints, $breakpoint);
+
+  // throw error if width is not defined
+  @if $width == null {
+    @return throw-error('typical-build-breakpoint-query(): could not find width for #{inspect($breakpoint)}');
+  }
+  
+  // convert found width to 'ems' (ALWAYS 16px contect in @media)
+  $width: convert-length($width, 'em', 16px);
+
+  // insert in min-width query
+  @return '(min-width: #{$width})';
+}
+
+// typical-breakpoint-query($breapoint)
+// -----------------------------------------------------------------------------
+/// Returns the media-query string to use for a given breakpoint key. If the
+/// developer specifies a custom query builder funtion, it Will be delegated to.
+
+@function typical-breakpoint-query($breakpoint)
+{
+  @if $typical-breakpoint-query-builder {
+    @return call($typical-breakpoint-query-builder, $query);
+  }
+
+  @return typical-build-breakpoint-query($breakpoint);
+}
+
+// typical-breakpoint-scale($scale)
+// -----------------------------------------------------------------------------
+/// Organizes typesale size values per-breakpoint
+
+@function typical-breakpoint-scale($scale)
+{
+  // get all breakpoint names in scale (but not 'base')
+  $breakpoints: typical-breakpoint-names($scale);
+  $bps-scale: ();
+  $base-scale: ();
+
+  @each $bp in $breakpoints
+  {
+    @each $size, $values in $scale
+    {
+      @if type-of($values) != 'map' {
+        $base-scale: map-set-deep($base-scale, 'base' $size, $values);
+      }
+
+      @else if $bp == 'base' {
+        $base-values: map-get($values, 'base');
+        $base-scale: map-set-deep($base-scale, 'base' $size, $base-values);
+      }
+
+      @else if map-has-key($values, $bp) {
+        $bp-values: map-get($values, $bp);
+        $bps-scale: map-set-deep($bps-scale, $bp $size, $bp-values);
+      }
+    }
+  }
+
+  @return map-merge($bps-scale, $base-scale);
+}
+
+// typical-breakpoint($breapoint)
+// -----------------------------------------------------------------------------
+/// Wraps a content block inside a given breakpoint's media query.
+
+@mixin typical-breakpoint($breakpoint)
+{
+  @if $breakpoint == 'base' {
+    @content;
+  }
+
+  @else
+  {
+    @media #{typical-breakpoint-query($breakpoint)}
+    {
+      @content;
+    }
+  }
+}

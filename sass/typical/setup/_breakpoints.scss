@@ -1,0 +1,43 @@
+// =============================================================================
+// =Typical - Setup Typescale Table
+// =============================================================================
+
+// typical-breakpoints-table()
+// -----------------------------------------------------------------------------
+
+@function typical-breakpoints()
+{
+  @if variable-exists('breakpoints') == false
+    or type-of($breakpoints) != map {
+    @return throw-error('typical-breakpoints(): `$breakpoints` global must be defined and contain the breakpoint keys.');
+  }
+
+  $bps-depth: map-depth($breakpoints);
+
+  // Cases where '$breakpoints' global would define breakpoints
+  // for multiple media-query features
+  @if $bps-depth == 2
+  {
+    // - get 'min-width' feature breakpoints
+    @if map-has-key($breakpoints, 'min-width') {
+      @return map-get($breakpoints, 'min-width');
+    }
+
+    // - or 'width' feature breakpoints
+    @if map-has-key($breakpoints, 'width') {
+      @return map-get($breakpoints, 'width');
+    }
+  }
+
+  @else if $bps-depth == 1 {
+    @return $breakpoints;
+  }
+
+  @return throw-error('typical-breakpoints(): can not find "min-width" breakpoints in #{inspect($breakpoints)}');
+}
+
+// Breakpoints
+// -----------------------------------------------------------------------------
+
+$_typical-breakpoints: typical-breakpoints();
+$_typical-breakpoint-names: map-keys($_typical-breakpoints);
