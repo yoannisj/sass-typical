@@ -4,10 +4,10 @@
 
 @import "sassy-maps";
 @import "aleksi/general/default-to";
-@import "typical/setup/fonts";
 @import "typical/helpers/typeface";
+@import "typical/setup/fonts";
 
-// typical-font-faces()
+// typical-font-faces([ $font ])
 // -----------------------------------------------------------------------------
 
 @mixin typical-font-faces($font: null)

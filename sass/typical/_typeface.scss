@@ -1,0 +1,22 @@
+// =============================================================================
+// =Typical - Typeface
+// =============================================================================
+
+@import "aleksi/strings/str-explode";
+@import "aleksi/strings/str-replace";
+@import "aleksi/cast/to-number";
+
+@import "typical/helpers/typeface";
+@import "typical/helpers/font-family";
+
+// typical-typeface($font, $face)
+// -----------------------------------------------------------------------------
+
+@mixin typical-typeface($font, $face)
+{
+  $face: typical-typeface-parse($face);
+
+  font-family: typical-font-stack($font);
+  font-style: map-get($face, 'style');
+  font-weight: map-get($face, 'weight');
+}
